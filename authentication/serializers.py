@@ -53,15 +53,3 @@ class LoginSerializer(serializers.Serializer):
             
                     raise serializers.ValidationError({'Error': 'Wrong password'})
         return attrs
-
-    def save(self):
-        print(self.validated_data)
-        user = FinUser.objects.get(email=self.validated_data['email'])
-        token = get_tokens_for_user(user)
-        return token
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['token'] = get_tokens_for_user(instance)
-        
-        return 
