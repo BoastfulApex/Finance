@@ -159,6 +159,42 @@ class ExpanseView(viewsets.ModelViewSet):
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
 
+    def list(self, request, *args, **kwargs):
+        company_id = request.GET.get('company_id')
+        if company_id:
+            try:
+                company = Company.objects.filter(id=company_id).first()
+                if company:
+                    jwt_object = JWTAuthentication()
+                    validated_token = jwt_object.get_validated_token(request.headers['token'])
+                    user = jwt_object.get_user(validated_token)
+                    manager = company.manager.id
+                    if manager == user.id:
+                        incoms = self.queryset.filter(company__id=company_id).all()
+                        serializer = self.get_serializer(incoms, many=True)
+                        return Response(serializer.data)
+                    else:
+                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)                    
+                else:
+                    return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as exx:
+                return Response({"Error": str(exx)})
+        else:
+            return HttpResponse()
+
+    def create(self, request, *args, **kwargs):
+        try:
+            jwt_object = JWTAuthentication() 
+            validated_token = jwt_object.get_validated_token(request.headers['token'])
+            user = jwt_object.get_user(validated_token)
+            company_id = request.data["company"]
+            company = Company.objects.get(id=company_id)
+            if company.manager.id == user.id:
+                return super().create(request, *args, **kwargs)
+            else:
+                return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as exx:
+            return Response({"Error": str(exx)})
 
 class IncomeByCompany(viewsets.ModelViewSet):
     queryset = Income.objects.all()
