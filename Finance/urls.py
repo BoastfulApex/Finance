@@ -15,9 +15,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from .api import router
+from django.conf.urls.static import static
+from .settings import STATIC_URL, STATIC_ROOT, MEDIA_URL, MEDIA_ROOT
+# from .api import router
+from rest_framework.schemas import get_schema_view
+from django.views.generic import TemplateView
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(router.urls)),
+    path('api/', include("statistika.urls")),
     path('auth/', include("authentication.urls")),
+
+    path('documentation/', TemplateView.as_view(
+        template_name='swagger-ui.html',
+        extra_context={'schema_url':'openapi-schema'}
+    ), name='swagger-ui'),
+    path('openapi', get_schema_view(
+        title="My Finance",
+        description="API for all things ...",
+        version="1.0.0"
+    ), name='openapi-schema'),
+
 ]

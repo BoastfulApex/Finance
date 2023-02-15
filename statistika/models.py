@@ -21,11 +21,15 @@ class Company(models.Model):
     name = models.CharField(max_length=250, null=True)
     manager = models.ForeignKey(Manager, on_delete=models.SET_NULL, null=True)
     category = models.ForeignKey(BusinessCategory, on_delete=models.SET_NULL, null=True)
-    type = models.ManyToManyField(BusinessType)
+    type = models.ManyToManyField(BusinessType, blank=False)
     join_date = models.DateField(auto_now_add=True)
     created_date = models.DateField(auto_now_add=False, null=True, blank=True)
     employees = models.IntegerField(default=0)
-
+    deleted = models.BooleanField(default=False)
+    
+    def deleteCompany(self):
+        self.deleted = True
+        return self.deleted
 
 class Income(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)

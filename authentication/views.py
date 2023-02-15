@@ -14,7 +14,6 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            print("created")
             finuser = FinUser.objects.create(
                 email=serializer.validated_data['email'],
             )
