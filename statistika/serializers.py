@@ -24,3 +24,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class IncomeByDateSerializer(serializers.Serializer):
+    begin = serializers.DateField()
+    end = serializers.DateField()
+    company = serializers.CharField()
+

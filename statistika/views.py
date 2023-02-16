@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 from authentication.models import FinUser as Manager
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import HttpResponse
-
+from django.db.models import Q
 
 class CompanyView(generics.ListCreateAPIView):
     queryset = Company.objects.filter(deleted=False).all()
@@ -155,7 +155,7 @@ class IncomeView(generics.ListCreateAPIView):
             return Response({"Error": str(exx)})
                 
 
-class ExpanseView(viewsets.ModelViewSet):
+class ExpenseView(generics.ListCreateAPIView):
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
 
@@ -196,15 +196,28 @@ class ExpanseView(viewsets.ModelViewSet):
         except Exception as exx:
             return Response({"Error": str(exx)})
 
-class IncomeByCompany(viewsets.ModelViewSet):
+
+class IncomeByDateView(generics.CreateAPIView):
     queryset = Income.objects.all()
-    serializer_class = IncomeSerializer
+    serializer_class = IncomeByDateSerializer
 
+    def create(self, request, *args, **kwargs):
+        try:
+            jwt_object = JWTAuthentication() 
+            validated_token = jwt_object.get_validated_token(request.headers['token'])
+            user = jwt_object.get_user(validated_token)
+            company_id = request.data["company"]
+            company = Company.objects.get(id=company_id)
+            if company.manager.id == user.id:
+                begin = request.data["begin"]
+                end = request.data["end"]
+                datas = Income.objects.values().filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                return Response(datas.values())
+            else:
+                return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as exx:
+            return Response({"Error": str(exx)})
 
-class ExpenseByCompany(viewsets.ModelViewSet):
-    queryset = Expense.objects.all()
-    serializer_class = ExpenseSerializer
-  
 
 class ManagerEmailCheck(viewsets.ModelViewSet):
     queryset = Manager.objects.all()
