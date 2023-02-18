@@ -219,6 +219,28 @@ class IncomeByDateView(generics.CreateAPIView):
             return Response({"Error": str(exx)})
 
 
+class ExpenseByDateView(generics.CreateAPIView):
+    queryset = Expense.objects.all()
+    serializer_class = ExpenseByDateSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            jwt_object = JWTAuthentication() 
+            validated_token = jwt_object.get_validated_token(request.headers['token'])
+            user = jwt_object.get_user(validated_token)
+            company_id = request.data["company"]
+            company = Company.objects.get(id=company_id)
+            if company.manager.id == user.id:
+                begin = request.data["begin"]
+                end = request.data["end"]
+                datas = Expense.objects.values().filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                return Response(datas.values())
+            else:
+                return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as exx:
+            return Response({"Error": str(exx)})
+
+
 class ManagerEmailCheck(viewsets.ModelViewSet):
     queryset = Manager.objects.all()
     serializer_class = ExpenseSerializer

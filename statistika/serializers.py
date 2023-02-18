@@ -29,3 +29,9 @@ class IncomeByDateSerializer(serializers.Serializer):
     end = serializers.DateField()
     company = serializers.CharField()
 
+
+class ExpenseByDateSerializer(serializers.Serializer):
+    begin = serializers.DateField()
+    end = serializers.DateField()
+    company = serializers.CharField()
+
