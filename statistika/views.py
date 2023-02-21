@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import viewsets
 from .serializers import *
-import smtplib, ssl
+import pandas as pd
 from .generator import generate_random_password
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from authentication.models import FinUser as Manager
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.db.models import Q
 
 class CompanyView(generics.ListCreateAPIView):
@@ -241,6 +241,78 @@ class ExpenseByDateView(generics.CreateAPIView):
             return Response({"Error": str(exx)})
 
 
+class GetExpenseDocumentView(generics.CreateAPIView):
+    queryset = Expense.objects.all()
+    serializer_class = ExpenseByDateSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            jwt_object = JWTAuthentication() 
+            validated_token = jwt_object.get_validated_token(request.headers['token'])
+            user = jwt_object.get_user(validated_token)
+            company_id = request.data["company"]
+            company = Company.objects.get(id=company_id)
+            if company.manager.id == user.id:
+                begin = request.data["begin"]
+                end = request.data["end"]
+                from_whats = []
+                summas = []
+                dates = []
+                datas = Expense.objects.filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                for expense in datas:
+                    dates.append(expense.date)
+                    summas.append(expense.cost)
+                    from_whats.append(expense.from_what)
+                df = pd.DataFrame({'Sana': dates,
+                                    'Nima uchun': from_whats,
+                                    'Summa': summas})
+                df.to_excel('./xisobot.xlsx') 
+                
+                doc = open('./xisobot.xlsx', 'rb')   
+
+                return FileResponse(doc)
+            else:
+                return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as exx:
+            return Response({"Error": str(exx)})
+
+
+class GetIncomeDocumentView(generics.CreateAPIView):
+    queryset = Income.objects.all()
+    serializer_class = IncomeByDateSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            jwt_object = JWTAuthentication() 
+            validated_token = jwt_object.get_validated_token(request.headers['token'])
+            user = jwt_object.get_user(validated_token)
+            company_id = request.data["company"]
+            company = Company.objects.get(id=company_id)
+            if company.manager.id == user.id:
+                begin = request.data["begin"]
+                end = request.data["end"]
+                from_whats = []
+                summas = []
+                dates = []
+                datas = Income.objects.filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                for income in datas:
+                    dates.append(income.date)
+                    summas.append(income.cost)
+                    from_whats.append(income.from_what)
+                df = pd.DataFrame({'Sana': dates,
+                                    'Nima uchun': from_whats,
+                                    'Summa': summas})
+                df.to_excel('./xisobot.xlsx') 
+                
+                doc = open('./xisobot.xlsx', 'rb')   
+
+                return FileResponse(doc)
+            else:
+                return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as exx:
+            return Response({"Error": str(exx)})
+
+
 class ManagerEmailCheck(viewsets.ModelViewSet):
     queryset = Manager.objects.all()
     serializer_class = ExpenseSerializer
@@ -272,3 +344,4 @@ class ManagerEmailCheck(viewsets.ModelViewSet):
     #             server.login(sender_address, sender_pass)
     #             server.sendmail(sender_address, m_email, text)
     #         return Response({"Email check password": check_pass})
+
