@@ -1,0 +1,4 @@
+
+
+def taskOne():
+    print("One")

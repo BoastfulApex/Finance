@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'statistika',
     'authentication',
     'rest_framework',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -59,6 +61,9 @@ ROOT_URLCONF = 'Finance.urls'
 
 AUTH_USER_MODEL = 'authentication.FinUser'
 
+CRONJOBS = [
+    ('*/1 * * * *', 'statistika.cronjobs.taskOne')
+]
 
 TEMPLATES = [
     {
