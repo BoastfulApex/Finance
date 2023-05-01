@@ -1,17 +1,13 @@
-from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import viewsets
 from .serializers import *
 import pandas as pd
-from .generator import generate_random_password
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from authentication.models import FinUser as Manager
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import HttpResponse, FileResponse
 from django.db.models import Q
+
 
 class CompanyView(generics.ListCreateAPIView):
     queryset = Company.objects.filter(deleted=False).all()
@@ -90,7 +86,6 @@ class CompanyDetail(generics.RetrieveUpdateDestroyAPIView):
                 return Response({"Error": str(exx)})
         else:
             return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
-        
 
     def destroy(self, request, *args, **kwargs):
         company_id = kwargs['pk']
@@ -313,6 +308,17 @@ class GetIncomeDocumentView(generics.CreateAPIView):
             return Response({"Error": str(exx)})
 
 
+class TestView(generics.ListCreateAPIView):
+    queryset = Income.objects.all()
+    serializer_class = IncomeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+    
+    def get(self, request, *args, **kwargs):
+        print(request.user)
+        return super().get(request, *args, **kwargs)
+
+
 class ManagerEmailCheck(viewsets.ModelViewSet):
     queryset = Manager.objects.all()
     serializer_class = ExpenseSerializer
@@ -345,3 +351,12 @@ class ManagerEmailCheck(viewsets.ModelViewSet):
     #             server.sendmail(sender_address, m_email, text)
     #         return Response({"Email check password": check_pass})
 
+
+class CategoryView(generics.ListCreateAPIView):
+    queryset = BusinessCategory.objects.all()
+    serializer_class = CategorySerializer
+
+
+class TypeView(generics.ListCreateAPIView):
+    queryset = BusinessType.objects.all()
+    serializer_class = TypeSerializer

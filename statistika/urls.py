@@ -10,4 +10,7 @@ urlpatterns = [
     path('expense_by_date/', ExpenseByDateView.as_view(), name='expense_by_date'),
     path('income_document/', GetIncomeDocumentView.as_view(), name='income_by_date'),
     path('expense_document/', GetExpenseDocumentView.as_view(), name='expense_by_date'),
+    path('categories/', CategoryView.as_view(), name='categories'),
+    path('types/', TypeView.as_view(), name='types'),
+    path('test/', TestView.as_view(), name='Test'),
 ]

@@ -41,6 +41,7 @@ class LoginView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             finuser = FinUser.objects.get(email=serializer.validated_data['email'])
+            # finuser,
             token = get_tokens_for_user(finuser)
             user = {
                 "id": finuser.id,

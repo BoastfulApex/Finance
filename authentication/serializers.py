@@ -27,8 +27,8 @@ class RegisterSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=200)    
     email = serializers.EmailField()    
     password = serializers.CharField(max_length=20)
-    
-        
+
+       
     def validate(self, attrs):
         email = attrs['email']
         data = FinUser.objects.filter(email=attrs['email']).first()
