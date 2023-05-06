@@ -12,24 +12,20 @@ from django.db.models import Q
 class CompanyView(generics.ListCreateAPIView):
     queryset = Company.objects.filter(deleted=False).all()
     serializer_class = CompanySerializer
-    
+    permission_classes = [permissions.IsAuthenticated]
+
     def list(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             objects = self.queryset.filter(manager_id=user.id).all()
             serializer = self.get_serializer(objects, many=True)
-            return Response(serializer.data)                
-        
+            return Response(serializer.data)
         except Exception as exx:
             return Response({"Error": str(exx)})
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             manager = request.data["manager"]
             if manager == user.id:
                 return super().create(request, *args, **kwargs)
@@ -42,15 +38,14 @@ class CompanyView(generics.ListCreateAPIView):
 class CompanyDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Company.objects.filter(deleted=False).all()
     serializer_class = CompanySerializer
-    
+    permission_classes = [permissions.IsAuthenticated]
+
     def retrieve(self, request, *args, **kwargs):
         company_id = kwargs['pk']
         company = self.queryset.filter(id=company_id).first()
         if company:
             try:
-                jwt_object = JWTAuthentication() 
-                validated_token = jwt_object.get_validated_token(request.headers['token'])
-                user = jwt_object.get_user(validated_token)
+                user = request.user
                 manager = company.manager.id
                 if manager == user.id:
                     return super().retrieve(request, *args, **kwargs)
@@ -66,9 +61,7 @@ class CompanyDetail(generics.RetrieveUpdateDestroyAPIView):
         company = self.queryset.filter(id=company_id).first()
         if company:
             try:
-                jwt_object = JWTAuthentication() 
-                validated_token = jwt_object.get_validated_token(request.headers['token'])
-                user = jwt_object.get_user(validated_token)
+                user = request.user
                 manager = company.manager.id
                 if manager == user.id:
                     if 'name' in request.data:
@@ -92,9 +85,7 @@ class CompanyDetail(generics.RetrieveUpdateDestroyAPIView):
         company = self.queryset.filter(id=company_id).first()
         if company:
             try:
-                jwt_object = JWTAuthentication() 
-                validated_token = jwt_object.get_validated_token(request.headers['token'])
-                user = jwt_object.get_user(validated_token)
+                user = request.user
                 manager = company.manager.id
                 if manager == user.id:
                     company.deleteCompany()
@@ -106,11 +97,12 @@ class CompanyDetail(generics.RetrieveUpdateDestroyAPIView):
                 return Response({"Error": str(exx)})
         else:
             return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
 
 class IncomeView(generics.ListCreateAPIView):
     queryset = Income.objects.all()
     serializer_class = IncomeSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         company_id = request.GET.get('company_id')
@@ -118,16 +110,14 @@ class IncomeView(generics.ListCreateAPIView):
             try:
                 company = Company.objects.filter(id=company_id).first()
                 if company:
-                    jwt_object = JWTAuthentication()
-                    validated_token = jwt_object.get_validated_token(request.headers['token'])
-                    user = jwt_object.get_user(validated_token)
+                    user = request.user
                     manager = company.manager.id
                     if manager == user.id:
                         incoms = self.queryset.filter(company__id=company_id).all()
                         serializer = self.get_serializer(incoms, many=True)
                         return Response(serializer.data)
                     else:
-                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)                    
+                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
                 else:
                     return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
             except Exception as exx:
@@ -137,9 +127,7 @@ class IncomeView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             company_id = request.data["company"]
             company = Company.objects.get(id=company_id)
             if company.manager.id == user.id:
@@ -148,11 +136,12 @@ class IncomeView(generics.ListCreateAPIView):
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as exx:
             return Response({"Error": str(exx)})
-                
+
 
 class ExpenseView(generics.ListCreateAPIView):
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         company_id = request.GET.get('company_id')
@@ -160,16 +149,14 @@ class ExpenseView(generics.ListCreateAPIView):
             try:
                 company = Company.objects.filter(id=company_id).first()
                 if company:
-                    jwt_object = JWTAuthentication()
-                    validated_token = jwt_object.get_validated_token(request.headers['token'])
-                    user = jwt_object.get_user(validated_token)
+                    user = request.user
                     manager = company.manager.id
                     if manager == user.id:
                         incoms = self.queryset.filter(company__id=company_id).all()
                         serializer = self.get_serializer(incoms, many=True)
                         return Response(serializer.data)
                     else:
-                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)                    
+                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
                 else:
                     return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
             except Exception as exx:
@@ -179,9 +166,7 @@ class ExpenseView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             company_id = request.data["company"]
             company = Company.objects.get(id=company_id)
             if company.manager.id == user.id:
@@ -195,18 +180,17 @@ class ExpenseView(generics.ListCreateAPIView):
 class IncomeByDateView(generics.CreateAPIView):
     queryset = Income.objects.all()
     serializer_class = IncomeByDateSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             company_id = request.data["company"]
             company = Company.objects.get(id=company_id)
             if company.manager.id == user.id:
                 begin = request.data["begin"]
                 end = request.data["end"]
-                datas = Income.objects.values().filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                datas = Income.objects.values().filter(Q(date__gte=begin) & Q(date__lte=end), company__id=company_id)
                 return Response(datas.values())
             else:
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -217,18 +201,17 @@ class IncomeByDateView(generics.CreateAPIView):
 class ExpenseByDateView(generics.CreateAPIView):
     queryset = Expense.objects.all()
     serializer_class = ExpenseByDateSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             company_id = request.data["company"]
             company = Company.objects.get(id=company_id)
             if company.manager.id == user.id:
                 begin = request.data["begin"]
                 end = request.data["end"]
-                datas = Expense.objects.values().filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                datas = Expense.objects.values().filter(Q(date__gte=begin) & Q(date__lte=end), company__id=company_id)
                 return Response(datas.values())
             else:
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -242,9 +225,7 @@ class GetExpenseDocumentView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             company_id = request.data["company"]
             company = Company.objects.get(id=company_id)
             if company.manager.id == user.id:
@@ -253,17 +234,17 @@ class GetExpenseDocumentView(generics.CreateAPIView):
                 from_whats = []
                 summas = []
                 dates = []
-                datas = Expense.objects.filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                datas = Expense.objects.filter(Q(date__gte=begin) & Q(date__lte=end), company__id=company_id)
                 for expense in datas:
                     dates.append(expense.date)
                     summas.append(expense.cost)
                     from_whats.append(expense.from_what)
                 df = pd.DataFrame({'Sana': dates,
-                                    'Nima uchun': from_whats,
-                                    'Summa': summas})
-                df.to_excel('./xisobot.xlsx') 
-                
-                doc = open('./xisobot.xlsx', 'rb')   
+                                   'Nima uchun': from_whats,
+                                   'Summa': summas})
+                df.to_excel('./xisobot.xlsx')
+
+                doc = open('./xisobot.xlsx', 'rb')
 
                 return FileResponse(doc)
             else:
@@ -275,12 +256,11 @@ class GetExpenseDocumentView(generics.CreateAPIView):
 class GetIncomeDocumentView(generics.CreateAPIView):
     queryset = Income.objects.all()
     serializer_class = IncomeByDateSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         try:
-            jwt_object = JWTAuthentication() 
-            validated_token = jwt_object.get_validated_token(request.headers['token'])
-            user = jwt_object.get_user(validated_token)
+            user = request.user
             company_id = request.data["company"]
             company = Company.objects.get(id=company_id)
             if company.manager.id == user.id:
@@ -289,17 +269,17 @@ class GetIncomeDocumentView(generics.CreateAPIView):
                 from_whats = []
                 summas = []
                 dates = []
-                datas = Income.objects.filter(Q(date__gte=begin)&Q(date__lte=end), company__id=company_id)
+                datas = Income.objects.filter(Q(date__gte=begin) & Q(date__lte=end), company__id=company_id)
                 for income in datas:
                     dates.append(income.date)
                     summas.append(income.cost)
                     from_whats.append(income.from_what)
                 df = pd.DataFrame({'Sana': dates,
-                                    'Nima uchun': from_whats,
-                                    'Summa': summas})
-                df.to_excel('./xisobot.xlsx') 
-                
-                doc = open('./xisobot.xlsx', 'rb')   
+                                   'Nima uchun': from_whats,
+                                   'Summa': summas})
+                df.to_excel('./xisobot.xlsx')
+
+                doc = open('./xisobot.xlsx', 'rb')
 
                 return FileResponse(doc)
             else:
@@ -313,7 +293,7 @@ class TestView(generics.ListCreateAPIView):
     serializer_class = IncomeSerializer
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (JWTAuthentication,)
-    
+
     def get(self, request, *args, **kwargs):
         print(request.user)
         return super().get(request, *args, **kwargs)
@@ -358,5 +338,11 @@ class CategoryView(generics.ListCreateAPIView):
 
 
 class TypeView(generics.ListCreateAPIView):
-    queryset = BusinessType.objects.all()
     serializer_class = TypeSerializer
+
+    def get_queryset(self):
+        queryset = BusinessType.objects.all()
+        category_id = self.request.query_params.get('category_id')
+        if category_id is not None:
+            queryset = queryset.filter(category_id=category_id)
+        return queryset

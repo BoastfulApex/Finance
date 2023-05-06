@@ -17,24 +17,32 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from .settings import STATIC_URL, STATIC_ROOT, MEDIA_URL, MEDIA_ROOT
-# from .api import router
-from rest_framework.schemas import get_schema_view
 from django.views.generic import TemplateView
+
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Finance Api",
+        default_version='v1'),
+    public=True,
+
+    permission_classes=(permissions.AllowAny,),
+)
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include("statistika.urls")),
     path('auth/', include("authentication.urls")),
-
-    path('documentation/', TemplateView.as_view(
-        template_name='swagger-ui.html',
-        extra_context={'schema_url':'openapi-schema'}
-    ), name='swagger-ui'),
-    path('openapi', get_schema_view(
-        title="My Finance",
-        description="API for all things ...",
-        version="1.0.0"
-    ), name='openapi-schema'),
-
+    # for_documentation
+    path('documentation/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
+
+
+urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
+urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)

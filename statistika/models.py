@@ -21,7 +21,7 @@ class Company(models.Model):
     name = models.CharField(max_length=250, null=True)
     manager = models.ForeignKey(Manager, on_delete=models.SET_NULL, null=True)
     category = models.ForeignKey(BusinessCategory, on_delete=models.SET_NULL, null=True)
-    type = models.ManyToManyField(BusinessType, blank=False)
+    type = models.ManyToManyField(BusinessType, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     created_date = models.DateField(auto_now_add=False, null=True, blank=True)
     employees = models.IntegerField(default=0)
@@ -41,6 +41,7 @@ ADDED, STOPPED, DELETED = (
     "Stopped",
     "Deleted"
 )
+
 
 class Income(models.Model):
     TIME_CHOISE = (
