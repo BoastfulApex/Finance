@@ -149,6 +149,7 @@ CORS_ALLOW_METHODS = [
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "token",
+    "Authorization",
 ]
 
 REST_FRAMEWORK = {
