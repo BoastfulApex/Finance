@@ -6,7 +6,7 @@ from django.db import models
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, first_name, password=None,**kwargs):
+    def create_user(self, email, first_name, password=None, **kwargs):
 
         if first_name is None:
             raise TypeError('Users must have a First Name')
@@ -14,7 +14,8 @@ class UserManager(BaseUserManager):
         if email is None:
             raise TypeError('Users must have an email address.')
 
-        user = self.model(first_name=first_name, email=email,**kwargs)
+        user = self.model(first_name=first_name, email=email, **kwargs)
+        user.is_active = True
         user.set_password(password)
         user.save()
 
@@ -51,5 +52,3 @@ class UserManager(BaseUserManager):
         user.is_active = True
         user.save(using=self._db)
         return user
-
-
