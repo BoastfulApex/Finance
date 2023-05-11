@@ -17,8 +17,9 @@ class RegisterView(generics.CreateAPIView):
             finuser = FinUser.objects.create(
                 email=serializer.validated_data['email'],
             )
-            finuser.last_name=serializer.validated_data['last_name']
-            finuser.first_name=serializer.validated_data['first_name']
+            finuser.last_name = serializer.validated_data['last_name']
+            finuser.first_name = serializer.validated_data['first_name']
+            finuser.is_active = True
             finuser.set_password(serializer.validated_data['password'])
             finuser.save()
             token = get_tokens_for_user(finuser)
