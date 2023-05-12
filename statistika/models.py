@@ -27,9 +27,10 @@ class Company(models.Model):
     employees = models.IntegerField(default=0)
     deleted = models.BooleanField(default=False)
     
-    def delete(self):
+    def __delete__(self, instance):
         self.deleted = True
         return self.deleted
+
 
 OYLIK, XAFTALIK = (
     "30",

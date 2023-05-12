@@ -19,6 +19,11 @@ class CompanyView(generics.ListCreateAPIView):
             user = request.user
             objects = self.queryset.filter(manager_id=user.id).all()
             serializer = self.get_serializer(objects, many=True)
+            for company in serializer.data:
+                if company['category'] is not None:
+                    company['category'] = company.category.name
+                if company['type'] is not None:
+                    company['type'] = company.type.name
             return Response(serializer.data)
         except Exception as exx:
             return Response({"Error": str(exx)})
@@ -145,24 +150,26 @@ class ExpenseView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         company_id = request.GET.get('company_id')
-        if company_id:
-            try:
-                company = Company.objects.filter(id=company_id).first()
-                if company:
-                    user = request.user
-                    manager = company.manager.id
-                    if manager == user.id:
-                        incoms = self.queryset.filter(company__id=company_id).all()
-                        serializer = self.get_serializer(incoms, many=True)
-                        return Response(serializer.data)
-                    else:
-                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            company = Company.objects.filter(id=company_id).first()
+            if company:
+                user = request.user
+                manager = company.manager.id
+                if manager == user.id:
+                    expenses = self.queryset.filter(company__id=company_id).all()
+                    expenses_by_month = {}
+                    for expense in expenses:
+                        month = expense.date.strftime('%Y-%m')
+                        if month not in expenses_by_month:
+                            expenses_by_month[month] = []
+                        expenses_by_month[month].append(expense)
+                    return Response(expenses_by_month)
                 else:
-                    return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
-            except Exception as exx:
-                return Response({"Error": str(exx)})
-        else:
-            return HttpResponse()
+                    return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as exx:
+            return Response({"Error": str(exx)})
 
     def create(self, request, *args, **kwargs):
         try:
