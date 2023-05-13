@@ -16,8 +16,8 @@ class TypeSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
-    type = TypeSerializer()
+    # category = CategorySerializer()
+    # type = TypeSerializer()
 
     class Meta:
         model = Company
