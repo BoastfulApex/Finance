@@ -19,11 +19,6 @@ class CompanyView(generics.ListCreateAPIView):
             user = request.user
             objects = self.queryset.filter(manager_id=user.id).all()
             serializer = self.get_serializer(objects, many=True)
-            for company in serializer.data:
-                if company['category'] is not None:
-                    company['category'] = company.category.name
-                if company['type'] is not None:
-                    company['type'] = company.type.name
             return Response(serializer.data)
         except Exception as exx:
             return Response({"Error": str(exx)})
