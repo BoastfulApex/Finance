@@ -276,7 +276,7 @@ class GetExpenseDocumentView(generics.CreateAPIView):
                 df = pd.DataFrame({'Sana': dates,
                                    'Nima uchun': from_whats,
                                    'Summa': summas})
-                file_path = Path('./xisobot.xlsx')
+                file_path = Path('./files/xisobot.xlsx')
                 df.to_excel(file_path, )
                 return Response({'status':'ok', 'file': "http://185.65.202.40:2843/xisobot.xlsx"})
             else:
@@ -310,7 +310,7 @@ class GetIncomeDocumentView(generics.CreateAPIView):
                 df = pd.DataFrame({'Sana': dates,
                                    'Nima uchun': from_whats,
                                    'Summa': summas})
-                df.to_excel('./xisobot.xlsx')
+                df.to_excel('./files/xisobot.xlsx')
                 
                 return Response({'status':'ok', 'file': "http://185.65.202.40:2843/xisobot.xlsx"})
             else:

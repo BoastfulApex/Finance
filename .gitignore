@@ -9,8 +9,14 @@ media
 .env
 
 env/
+
+
 ./venv/
 
 .idea/
 
 xisobot.xlsx
+
+files/
+
+static/
