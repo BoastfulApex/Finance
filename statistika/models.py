@@ -68,7 +68,8 @@ class Income(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             if self.auto:
-                self.next_pay = datetime.now() + timedelta(days=int(self.often))
+                next_pay = datetime.now() + timedelta(days=int(self.often))
+                self.next_pay = next_pay.date()
                 self.status = ADDED
 
         super(Income, self).save(*args, **kwargs)
