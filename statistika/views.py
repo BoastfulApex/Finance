@@ -278,7 +278,7 @@ class GetExpenseDocumentView(generics.CreateAPIView):
                                    'Summa': summas})
                 file_path = Path('./files/xisobot.xlsx')
                 df.to_excel(file_path, )
-                return Response({'status':'ok', 'file': "http://185.65.202.40:2843/xisobot.xlsx"})
+                return Response({'status':'ok', 'file': "http://185.65.202.40:2843/files/xisobot.xlsx"})
             else:
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as exx:
@@ -312,7 +312,7 @@ class GetIncomeDocumentView(generics.CreateAPIView):
                                    'Summa': summas})
                 df.to_excel('./files/xisobot.xlsx')
                 
-                return Response({'status':'ok', 'file': "http://185.65.202.40:2843/xisobot.xlsx"})
+                return Response({'status':'ok', 'file': "http://185.65.202.40:2843/files/xisobot.xlsx"})
             else:
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as exx:
