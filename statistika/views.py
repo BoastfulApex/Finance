@@ -130,8 +130,8 @@ class IncomeView(generics.ListCreateAPIView):
                             incs = Income.objects.filter(company_id=company_id, date__year=date[0], date__month=date[1]).values('cost').all()
                             sums = [income['cost'] for income in incs]
                             incomes_by_moth = {
-                                'month': f'{date[0]}/{date[1]}',
-                                'summa': sum(sums)
+                                'name': f'{date[0]}/{date[1]}',
+                                'uv': sum(sums)
                             }
                             response_data.append(incomes_by_moth)                            
                         serializer = self.get_serializer(incoms, many=True)
@@ -190,9 +190,10 @@ class ExpenseView(generics.ListCreateAPIView):
                             exps = Expense.objects.filter(company_id=company_id, date__year=date[0], date__month=date[1]).values('cost').all()
                             sums = [expense['cost'] for expense in exps]
                             expenses_by_moth = {
-                                'month': f'{date[0]}/{date[1]}',
-                                'summa': sum(sums)
+                                'name': f'{date[0]}/{date[1]}',
+                                'pv': sum(sums)
                             }
+                            response_data.append(expenses_by_moth)
                         return Response(response_data)
                     else:
                         return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
