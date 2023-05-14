@@ -31,6 +31,10 @@ class Company(models.Model):
         self.deleted = True
         return self.deleted
 
+    def __str__(self):
+        return self.name
+    
+    
 
 OYLIK, XAFTALIK = (
     "30",
@@ -104,4 +108,3 @@ class Expense(models.Model):
                 self.status = ADDED
 
         super(Expense, self).save(*args, **kwargs)
-
