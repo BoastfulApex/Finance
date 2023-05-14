@@ -7,6 +7,7 @@ from authentication.models import FinUser as Manager
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import HttpResponse, FileResponse
 from django.db.models import Q
+from pathlib import Path
 
 
 class CompanyView(generics.ListCreateAPIView):
@@ -267,6 +268,7 @@ class GetExpenseDocumentView(generics.CreateAPIView):
                 summas = []
                 dates = []
                 datas = Expense.objects.filter(Q(date__gte=begin) & Q(date__lte=end), company__id=company_id)
+                datas = Expense.objects.all()
                 for expense in datas:
                     dates.append(expense.date)
                     summas.append(expense.cost)
@@ -274,11 +276,11 @@ class GetExpenseDocumentView(generics.CreateAPIView):
                 df = pd.DataFrame({'Sana': dates,
                                    'Nima uchun': from_whats,
                                    'Summa': summas})
-                df.to_excel('./xisobot.xlsx')
+                file_path = Path('./xisobot.xlsx')
+                df.to_excel(file_path, )
+                
 
-                doc = open('./xisobot.xlsx', 'rb')
-
-                return FileResponse(doc)
+                return Response({'status':'ok', 'file': "http://185.65.202.40:2843/xisobot.xlsx"})
             else:
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as exx:
@@ -302,6 +304,7 @@ class GetIncomeDocumentView(generics.CreateAPIView):
                 summas = []
                 dates = []
                 datas = Income.objects.filter(Q(date__gte=begin) & Q(date__lte=end), company__id=company_id)
+                datas = Income.objects.all()
                 for income in datas:
                     dates.append(income.date)
                     summas.append(income.cost)
@@ -309,11 +312,10 @@ class GetIncomeDocumentView(generics.CreateAPIView):
                 df = pd.DataFrame({'Sana': dates,
                                    'Nima uchun': from_whats,
                                    'Summa': summas})
-                df.to_excel('./xisobot.xlsx')
-
-                doc = open('./xisobot.xlsx', 'rb')
-
-                return FileResponse(doc)
+                file_path = Path('./xisobot.xlsx')
+                df.to_excel(file_path, )
+                
+                return Response({'status':'ok', 'file': "http://185.65.202.40:2843/xisobot.xlsx"})
             else:
                 return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as exx:
