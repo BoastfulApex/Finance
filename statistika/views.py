@@ -100,31 +100,48 @@ class CompanyDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class IncomeView(generics.ListCreateAPIView):
-    queryset = Income.objects.all()
     serializer_class = IncomeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        queryset = Income.objects.all()
+        company_id = self.request.query_params.get('company_id')
+        if company_id is not None:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset
+
     def list(self, request, *args, **kwargs):
         company_id = request.GET.get('company_id')
-        if company_id:
+        if company_id is not None:
             try:
                 company = Company.objects.filter(id=company_id).first()
                 if company:
                     user = request.user
                     manager = company.manager.id
                     if manager == user.id:
-                        incoms = self.queryset.filter(company__id=company_id).all()
+                        incoms = self.get_queryset()
+                        dates = []
+                        incomes_by_moth = {}
+                        for income in incoms:
+                            dates.append((income.date.year, income.date.month))
+                        dates = list(dict.fromkeys(dates))
+                        for date in dates:
+                            incomes_by_moth[f'{date[0]}/{date[1]}'] = []
+                            incs = Income.objects.filter(company_id=company_id, date__year=date[0], date__month=date[1]).values('cost').all()
+                            sums = [income['cost'] for income in incs]
+                            incomes_by_moth[f'{date[0]}/{date[1]}'] = sum(sums)
                         serializer = self.get_serializer(incoms, many=True)
-                        return Response(serializer.data)
+                        return Response(incomes_by_moth)
                     else:
                         return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
                 else:
-                    return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
+                    return super().list(request, *args, **kwargs)
             except Exception as exx:
                 return Response({"Error": str(exx)})
         else:
-            return HttpResponse()
-
+            return super().list(request, *args, **kwargs)
+        
+        
     def create(self, request, *args, **kwargs):
         try:
             user = request.user
@@ -139,32 +156,45 @@ class IncomeView(generics.ListCreateAPIView):
 
 
 class ExpenseView(generics.ListCreateAPIView):
-    queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        queryset = Expense.objects.all()
+        company_id = self.request.query_params.get('company_id')
+        if company_id is not None:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset
+
     def list(self, request, *args, **kwargs):
         company_id = request.GET.get('company_id')
-        try:
-            company = Company.objects.filter(id=company_id).first()
-            if company:
-                user = request.user
-                manager = company.manager.id
-                if manager == user.id:
-                    expenses = self.queryset.filter(company__id=company_id).all()
-                    expenses_by_month = {}
-                    for expense in expenses:
-                        month = expense.date.strftime('%Y-%m')
-                        if month not in expenses_by_month:
-                            expenses_by_month[month] = []
-                        expenses_by_month[month].append(expense)
-                    return Response(expenses_by_month)
+        if company_id is not None:
+            try:
+                company = Company.objects.filter(id=company_id).first()
+                if company:
+                    user = request.user
+                    manager = company.manager.id
+                    if manager == user.id:
+                        expenses = self.get_queryset()
+                        dates = []
+                        expenses_by_moth = {}
+                        for income in expenses:
+                            dates.append((income.date.year, income.date.month))
+                        dates = list(dict.fromkeys(dates))
+                        for date in dates:
+                            expenses_by_moth[f'{date[0]}/{date[1]}'] = []
+                            exps = Expense.objects.filter(company_id=company_id, date__year=date[0], date__month=date[1]).values('cost').all()
+                            sums = [expense['cost'] for expense in exps]
+                            expenses_by_moth[f'{date[0]}/{date[1]}'] = sum(sums)
+                        return Response(expenses_by_moth)
+                    else:
+                        return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
                 else:
-                    return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as exx:
-            return Response({"Error": str(exx)})
+                    return super().list(request, *args, **kwargs)
+            except Exception as exx:
+                return Response({"Error": str(exx)})
+        else:
+            return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         try:
@@ -184,7 +214,7 @@ class IncomeByDateView(generics.CreateAPIView):
     serializer_class = IncomeByDateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         try:
             user = request.user
             company_id = request.data["company"]
@@ -205,7 +235,7 @@ class ExpenseByDateView(generics.CreateAPIView):
     serializer_class = ExpenseByDateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         try:
             user = request.user
             company_id = request.data["company"]

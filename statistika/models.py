@@ -1,6 +1,6 @@
 from django.db import models
 from authentication.models import FinUser as Manager
-
+from datetime import datetime, timedelta
 
 class BusinessCategory(models.Model):
     business_category = models.CharField(max_length=250, null=True)
@@ -65,6 +65,14 @@ class Income(models.Model):
     status = models.CharField(max_length=25, choices=STATUS_CHOISE, null=True, blank=True)
     next_pay = models.DateField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            if self.auto:
+                self.next_pay = datetime.now() + timedelta(days=int(self.often))
+                self.status = ADDED
+
+        super(Income, self).save(*args, **kwargs)
+
 
 class Expense(models.Model):
     TIME_CHOISE = (
@@ -86,3 +94,12 @@ class Expense(models.Model):
     often = models.CharField(max_length=25, choices=TIME_CHOISE, null=True, blank=True)
     status = models.CharField(max_length=25, choices=STATUS_CHOISE, null=True, blank=True)
     next_pay = models.DateField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            if self.auto:
+                self.next_pay = datetime.now() + timedelta(days=int(self.often))
+                self.status = ADDED
+
+        super(Income, self).save(*args, **kwargs)
+
