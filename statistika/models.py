@@ -102,5 +102,5 @@ class Expense(models.Model):
                 self.next_pay = datetime.now() + timedelta(days=int(self.often))
                 self.status = ADDED
 
-        super(Income, self).save(*args, **kwargs)
+        super(Expense, self).save(*args, **kwargs)
 
