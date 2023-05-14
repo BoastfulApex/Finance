@@ -122,17 +122,20 @@ class IncomeView(generics.ListCreateAPIView):
                     if manager == user.id:
                         incoms = self.get_queryset()
                         dates = []
-                        incomes_by_moth = {}
+                        response_data = []
                         for income in incoms:
                             dates.append((income.date.year, income.date.month))
                         dates = list(dict.fromkeys(dates))
                         for date in dates:
-                            incomes_by_moth[f'{date[0]}/{date[1]}'] = []
                             incs = Income.objects.filter(company_id=company_id, date__year=date[0], date__month=date[1]).values('cost').all()
                             sums = [income['cost'] for income in incs]
-                            incomes_by_moth[f'{date[0]}/{date[1]}'] = sum(sums)
+                            incomes_by_moth = {
+                                'month': f'{date[0]}/{date[1]}',
+                                'summa': sum(sums)
+                            }
+                            response_data.append(incomes_by_moth)                            
                         serializer = self.get_serializer(incoms, many=True)
-                        return Response(incomes_by_moth)
+                        return Response(response_data)
                     else:
                         return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
                 else:
@@ -178,16 +181,19 @@ class ExpenseView(generics.ListCreateAPIView):
                     if manager == user.id:
                         expenses = self.get_queryset()
                         dates = []
+                        response_data = []
                         expenses_by_moth = {}
                         for income in expenses:
                             dates.append((income.date.year, income.date.month))
                         dates = list(dict.fromkeys(dates))
                         for date in dates:
-                            expenses_by_moth[f'{date[0]}/{date[1]}'] = []
                             exps = Expense.objects.filter(company_id=company_id, date__year=date[0], date__month=date[1]).values('cost').all()
                             sums = [expense['cost'] for expense in exps]
-                            expenses_by_moth[f'{date[0]}/{date[1]}'] = sum(sums)
-                        return Response(expenses_by_moth)
+                            expenses_by_moth = {
+                                'month': f'{date[0]}/{date[1]}',
+                                'summa': sum(sums)
+                            }
+                        return Response(response_data)
                     else:
                         return Response({"Error": "Authentification failed"}, status=status.HTTP_401_UNAUTHORIZED)
                 else:
